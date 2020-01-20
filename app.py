@@ -8,8 +8,8 @@ from flask import render_template
 
 import User
 
-from security.basic_authentication import generate_password_hash
-from security.basic_authentication import init_basic_auth
+from basic_authentication import generate_password_hash
+from basic_authentication import init_basic_auth
 
 
 app = Flask(__name__)
