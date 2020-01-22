@@ -18,6 +18,20 @@ CREATE TABLE IF NOT EXISTS user
 ''')
 conn.commit()
 
+conn.cursor().execute('''
+CREATE TABLE IF NOT EXISTS ads
+    (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL UNIQUE,
+        description TEXT,
+        price DOUBLE,
+        date TEXT,
+        isActive BOOL,
+        buyer TEXT
+    )
+''')
+conn.commit()
+
 class SQLite(object):
     
     def __enter__(self):
