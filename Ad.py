@@ -9,6 +9,7 @@ from flask import render_template
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_httpauth import HTTPBasicAuth
 
+import basic_auth
 
 from database import SQLite
 from errors import ApplicationError
@@ -23,16 +24,16 @@ class Ad:
         self.isActive = isActive
         self.buyer = buyer
 
+
     @staticmethod
     def create_ad (user, password, newAd):
-        # put authentication here
-        #-->
         result = None
         with SQLite() as db:
             result = db.execute("INSERT INTO ads (title, description, price, date, isActive, buyer) VALUES (?, ?, ?, ?, ?, ?)",
                     (newAd.title, newAd.description, newAd.price, newAd.date, newAd.isActive, newAd.buyer,))
         if result.rowcount == 0:
             raise ApplicationError("No value present", 404)
+        
 
 
             
@@ -57,8 +58,60 @@ class Ad:
             return [Ad(*row) for row in result]
 
 
-#ad = Ad("Prodavam moskvi4", "prodavam moskvi4. Pipnal sum go. Slojil sum mu v8 TDI i 22 colovi janti. 550 konq. VDIGA 250!!!!", 35000.0, "e predi malko", True, "Kolyo pi4a")
-#obqva = Ad.create_ad("kolyo", "Obi4amKotki124", ad)
-find = Ad.all()
-print(find[0].title)
-print(find[0].description)
+    @staticmethod
+    def edit(ad_id, part_to_edit, value):
+        if part_to_edit=="title":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE ads SET title = ? WHERE id = ?;",
+                    (value, ad_id,))
+
+        elif part_to_edit=="description":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE ads SET description = ? WHERE id = ?;",
+                    (value, ad_id,))
+
+        elif part_to_edit=="price":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE ads SET price = ? WHERE id = ?;",
+                    (value, ad_id,)) 
+
+        elif part_to_edit=="date":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE ads SET date = ? WHERE id = ?;",
+                    (value, ad_id,))  
+
+        elif part_to_edit=="isActive":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE ads SET isActive = ? WHERE id = ?;",
+                    (value, ad_id,)) 
+
+        elif part_to_edit=="buyer":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE ads SET buyer = ? WHERE id = ?;",
+                    (value, ad_id,))  
+        else:
+            raise ApplicationError("{} doesnt exist".format(part_to_edit),404)
+        
+
+    @staticmethod
+    def delete(id):
+        result = None
+        with SQLite() as db:
+            result = db.execute("DELETE FROM ads WHERE id = ?",
+                    (id,))
+        if result.rowcount == 0:
+            raise ApplicationError("No value present", 404)
+
+
+
+
+
+
+
+
