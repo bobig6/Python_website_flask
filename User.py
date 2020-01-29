@@ -19,21 +19,21 @@ app = Flask(__name__)
 class User:
     def __init__(self,id,email,password,name,address,phone_number):
         self.id=id
-        self.name=name
         self.email=email
         self.password=password
+        self.name=name
         self.address=address
         self.phone_number=phone_number
-    
+
     @staticmethod
     def create_user(user, password, email, address, phone_number):
         result = None
         with SQLite() as db:
             result = db.execute("INSERT INTO user (username, password, email, address, phone_number) VALUES (?, ?, ?, ?, ?)",
-                    (user, password, email, address, phone_number,))
+                    (user, generate_password_hash(password), email, address, phone_number,))
         if result.rowcount == 0:
             raise ApplicationError("No value present", 404)
-            
+
     @staticmethod
     def find_by_username(username):
         result = None
@@ -46,20 +46,70 @@ class User:
             raise ApplicationError(
                     "Post with name {} not found".format(username), 404)
         return User(*user)
-
-#    def save(self):
-#        with SQLite() as db:
-#        	cursor = db.execute(self.__get_save_query())
-#        self.id = cursor.lastrowid
-#        return self
-
-
-#podredi neshtata ot klasa
-
+     
+    @staticmethod
+    def find_by_id(id):
+        result = None
+        with SQLite() as db:
+            result = db.execute(
+                    "SELECT id, email, password, username, address, phone_number FROM user WHERE id = ?",
+                    (id,))
+        user = result.fetchone()
+        if user is None:
+            raise ApplicationError(
+                    "Post with id {} not found".format(id), 404)
+        return User(*user)
 	
 
-#Petko = User.create_user("Petko Dapchev", generate_password_hash("pepi"), "p.dapchev09@abv.bg", "Sofia", "088")
-print(User.find_by_username("Petko Dapchev").name)
+    @staticmethod
+    def edit(user_id, part_to_edit, value):
+        if part_to_edit=="email" or part_to_edit=="password":
+            raise ApplicationError("You can't change your email or password",404)
+        elif part_to_edit=="username":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE user SET username = ? WHERE id = ?;",
+                    (value, user_id,))
+
+        elif part_to_edit=="address":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE user SET address = ? WHERE id = ?;",
+                    (value, user_id,))
+
+        elif part_to_edit=="phone_number":
+            with SQLite() as db:
+                result = db.execute(
+                    "UPDATE user SET phone_number = ? WHERE id = ?;",
+                    (value, user_id,))   
+        else:
+            raise ApplicationError("{} doesnt exist".format(part_to_edit),404)
+        
+
+    @staticmethod
+    def all():
+        with SQLite() as db:
+            result = db.execute(
+                    "SELECT id, email, password, username, address, phone_number FROM user").fetchall()
+            return [User(*row) for row in result]
+
+    @staticmethod
+    def delete(id):
+        result = None
+        with SQLite() as db:
+            result = db.execute("DELETE FROM user WHERE id = ?",
+                    (id,))
+        if result.rowcount == 0:
+            raise ApplicationError("No value present", 404)
+
+
+
+
+#Petko = User.create_user("petko", generate_password_hash("pepi"), "Petko Dapch", "Sofia","08")
+
+print(User.all()[0].id)
+print(User.all()[1].id)
+print(User.all()[2].id)
 
 
 
