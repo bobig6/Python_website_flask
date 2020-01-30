@@ -25,6 +25,7 @@ class User:
         self.address=address
         self.phone_number=phone_number
 
+
     @staticmethod
     def create_user(user, password, email, address, phone_number):
         result = None
