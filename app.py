@@ -141,7 +141,7 @@ def list():
     result = {}
     user = User.find_by_username(auth.username())
     for ad in Ad.all():
-        if(ad.user_id == user.id):
+        if(ad.user_id == user.id) and ad.isActive == True:
             result[User.find_by_username(ad.buyer).id] = ad.to_dict()
 
     return result
