@@ -123,4 +123,26 @@ def delete_ad(ad_id):
 
 
 
+@app.route("/api/buy/<ad_id>", methods = ["POST"])
+@auth.login_required
+def buy(ad_id):
+    ad = Ad.find_by_id(ad_id)
+    if(ad.isActive == True):
+        return "Ad isn't active"
+    Ad.edit(ad_id, "isActive", True)
+    Ad.edit(ad_id, "buyer", auth.username())
+    return "Success", 200
+
+
+@app.route("/api/list", methods = ["GET"])
+@auth.login_required
+def list():
+    result = {}
+    user = User.find_by_username(auth.username())
+    for ad in Ad.all():
+        if(ad.user_id == user.id):
+            result[User.find_by_username(ad.buyer).id] = ad.to_dict()
+
+    return result
+
 
