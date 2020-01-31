@@ -16,7 +16,8 @@ from errors import ApplicationError
 #import basic_auth
 
 class Ad:
-    def __init__(self, title, description, price, date, isActive, buyer):
+    def __init__(self, user_id, title, description, price, date, isActive, buyer):
+        self.user_id = user_id
         self.title = title
         self.description = description
         self.price = price
@@ -25,12 +26,15 @@ class Ad:
         self.buyer = buyer
 
 
+    def to_dict(self):
+        return self.__dict__
+
     @staticmethod
-    def create_ad (user, password, newAd):
+    def create_ad (newAd):
         result = None
         with SQLite() as db:
-            result = db.execute("INSERT INTO ads (title, description, price, date, isActive, buyer) VALUES (?, ?, ?, ?, ?, ?)",
-                    (newAd.title, newAd.description, newAd.price, newAd.date, newAd.isActive, newAd.buyer,))
+            result = db.execute("INSERT INTO ads (user_id, title, description, price, date, isActive, buyer) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (newAd.user_id, newAd.title, newAd.description, newAd.price, newAd.date, newAd.isActive, newAd.buyer,))
         if result.rowcount == 0:
             raise ApplicationError("No value present", 404)
         
@@ -42,7 +46,7 @@ class Ad:
         result = None
         with SQLite() as db:
             result = db.execute(
-                    "SELECT title, description, price, date, isActive, buyer FROM ads WHERE id = ?",
+                    "SELECT user_id, title, description, price, date, isActive, buyer FROM ads WHERE id = ?",
                     (id,))
         ad = result.fetchone()
         if ad is None:
@@ -54,7 +58,7 @@ class Ad:
     def all():
         with SQLite() as db:
             result = db.execute(
-                    "SELECT title, description, price, date, isActive, buyer FROM ads").fetchall()
+                    "SELECT user_id, title, description, price, date, isActive, buyer FROM ads").fetchall()
             return [Ad(*row) for row in result]
 
 

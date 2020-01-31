@@ -22,6 +22,7 @@ conn.cursor().execute('''
 CREATE TABLE IF NOT EXISTS ads
     (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
         title TEXT NOT NULL UNIQUE,
         description TEXT,
         price DOUBLE,

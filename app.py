@@ -6,7 +6,8 @@ from flask import request
 from flask import render_template
 
 
-import User
+from User import User
+from Ad import Ad
 
 from basic_auth import generate_password_hash
 from basic_auth import init_basic_auth
@@ -21,56 +22,105 @@ def create_user():
     if user_data == None:
         return "Bad request", 400
     hashed_password = generate_password_hash(user_data["password"])
-    user = User(user_data["username"], hashed_password)
-    user.save()
-    return json.dumps(user.to_dict()), 201
+    User.create_user(user_data["username"], hashed_password, user_data["email"],user_data["address"],user_data["phone_number"])
+    return "Success", 200
 
-@app.route("/", methods = ["GET"])
-@auth.login_required
-def posts():
-    return render_template("index.html")
+@app.route("/api/users/<user_id>", methods = ["GET"])
+def get_user(user_id):
+    return json.dumps(User.find_by_id(user_id).to_dict())
 
 
-@app.route("/api/posts", methods = ["POST"])
-def create_post():
-    post_data = request.get_json(force=True, silent=True)
-    if post_data == None:
-        return "Bad request", 400
-    post = Post(post_data["title"], post_data["content"])
-    post.save()
-    return json.dumps(post.to_dict()), 201
-
-@app.route("/api/posts/<post_id>", methods = ["GET"])
-def get_post(post_id):
-    return json.dumps(Post.find(post_id).to_dict())
-
-
-@app.route("/api/posts", methods = ["GET"])
-def list_users():
+@app.route("/api/users", methods = ["GET"])
+def all_users():
     result = {"result": []}
     for user in User.all():
         result["result"].append(user.to_dict())
     return json.dumps(result)
 
 
-
-@app.route("/api/posts/<post_id>", methods = ["PATCH"])
-def update_post(post_id):
-    post_data = request.get_json(force=True, silent=True)
-    if post_data == None:
+@app.route("/api/users/<user_id>", methods = ["PATCH"])
+def update_user(user_id):
+    user_data = request.get_json(force=True, silent=True)
+    if user_data == None:
         return "Bad request", 400
 
-    post = Post.find(post_id)
-    if "title" in post_data:
-        post.title = post_data["title"]
-    if "content" in post_data:
-        post.content = post_data["content"]
-    return json.dumps(post.save().to_dict())
+    if "username" in user_data:
+        User.edit(user_id, "username", user_data["username"])
+    if "address" in user_data:
+        User.edit(user_id, "address", user_data["address"])
+    if "phone_number" in user_data:
+        User.edit(user_id, "phone_number", user_data["phone_number"])
+
+    return "Success", 200
+
+
+@app.route("/api/users/<user_id>", methods = ["DELETE"])
+def delete_user(user_id):
+    User.delete(user_id)
+    return "Success", 200
 
 
 
-@app.route("/api/posts/<post_id>", methods = ["DELETE"])
-def delete_post(post_id):
-    Post.delete(post_id)
-    return ""
+
+
+@app.route("/api/ads", methods = ["POST"])
+@auth.login_required
+def create_ad():
+    ad_data = request.get_json(force=True, silent=True)
+    if ad_data == None:
+        return "Bad request", 400
+    user_id = User.find_by_username(auth.username()).id
+    ad = Ad(user_id, ad_data["title"], ad_data["description"], ad_data["price"], ad_data["date"], ad_data["isActive"], ad_data["buyer"])
+    Ad.create_ad(ad)
+    return json.dumps(ad.to_dict()), 201
+
+@app.route("/api/ads/<ad_id>", methods = ["GET"])
+def get_ad(ad_id):
+    return json.dumps(Ad.find_by_id(ad_id).to_dict())
+
+
+@app.route("/api/ads", methods = ["GET"])
+def all_ads():
+    result = {"result": []}
+    for ad in Ad.all():
+        result["result"].append(ad.to_dict())
+    return json.dumps(result)
+
+
+@app.route("/api/ads/<ad_id>", methods = ["PATCH"])
+@auth.login_required
+def update_ad(ad_id):
+    ad_data = request.get_json(force=True, silent=True)
+    if ad_data == None:
+        return "Bad request", 400
+
+    if(User.find_by_username(auth.username()).id == Ad.find_by_id(ad_id).user_id):
+        if "title" in ad_data:
+            Ad.edit(ad_id, "title", ad_data["title"])
+        if "description" in ad_data:
+            Ad.edit(ad_id, "description", ad_data["description"])
+        if "price" in ad_data:
+            Ad.edit(ad_id, "price", ad_data["price"])
+        if "date" in ad_data:
+            Ad.edit(ad_id, "date", ad_data["date"])
+        if "isActive" in ad_data:
+            Ad.edit(ad_id, "isActive", ad_data["isActive"])
+        if "buyer" in ad_data:
+            Ad.edit(ad_id, "buyer", ad_data["buyer"])
+        return "Success", 200
+    else:
+        return "Permission Denied", 550
+
+
+@app.route("/api/ads/<ad_id>", methods = ["DELETE"])
+@auth.login_required
+def delete_ad(ad_id):
+    if(User.find_by_username(auth.username()).id == Ad.find_by_id(ad_id).user_id):
+        Ad.delete(ad_id)
+        return "Success", 200
+    else:
+        return "Permission Denied", 550
+
+
+
 

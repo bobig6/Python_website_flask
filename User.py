@@ -26,12 +26,17 @@ class User:
         self.phone_number=phone_number
 
 
+    def to_dict(self):
+        user_data = self.__dict__
+        del user_data["password"]
+        return user_data
+
     @staticmethod
     def create_user(user, password, email, address, phone_number):
         result = None
         with SQLite() as db:
             result = db.execute("INSERT INTO user (username, password, email, address, phone_number) VALUES (?, ?, ?, ?, ?)",
-                    (user, generate_password_hash(password), email, address, phone_number,))
+                    (user, password, email, address, phone_number,))
         if result.rowcount == 0:
             raise ApplicationError("No value present", 404)
 
@@ -106,11 +111,6 @@ class User:
 
 
 
-#Petko = User.create_user("petko", generate_password_hash("pepi"), "Petko Dapch", "Sofia","08")
-
-print(User.all()[0].id)
-print(User.all()[1].id)
-print(User.all()[2].id)
 
 
 
