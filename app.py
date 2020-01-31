@@ -5,6 +5,7 @@ from flask import Flask
 from flask import request
 from flask import render_template
 
+import database
 
 from User import User
 from Ad import Ad
